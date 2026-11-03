@@ -1,0 +1,42 @@
+name: Build Looking Glass IDD Installer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-idd:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout matching source
+        uses: actions/checkout@v4
+        with:
+          ref: cdba29f2
+          submodules: recursive
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v3
+        with:
+          msbuild-architecture: x64
+
+      - name: Restore NuGet packages
+        working-directory: idd
+        run: nuget restore LGIdd.sln
+
+      - name: Build IDD
+        working-directory: idd
+        run: msbuild.exe LGIdd.sln /t:Build /p:Configuration=Release /p:Platform=x64
+
+      - name: Build installer
+        working-directory: idd/x64/Release/LGIdd
+        run: makensis -DBUILD_32BIT installer.nsi
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: looking-glass-idd-installer
+          path: idd/x64/Release/LGIdd/*.exe
+          if-no-files-found: error
