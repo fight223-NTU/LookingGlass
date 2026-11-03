@@ -14,8 +14,17 @@ jobs:
       - name: Checkout matching source
         uses: actions/checkout@v4
         with:
-          ref: cdba29f2
+          repository: gnif/LookingGlass
+          ref: master
           submodules: recursive
+          fetch-depth: 0
+
+      - name: Verify source version
+        shell: bash
+        run: |
+          git checkout cdba29f2
+          git submodule update --init --recursive
+          test "$(git rev-parse --short=8 HEAD)" = "cdba29f2"
 
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v3
